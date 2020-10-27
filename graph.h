@@ -2,17 +2,15 @@
 #define GRAPH_H
 
 typedef struct {
+	char *target;
+	char *dependencies;
+	char *commands;
+} graphNode;
 
-} Graph;
-typedef struct {
-
-} Node;
-
-Graph* createGraph();
-int addNode(char* str);
-Node *removeNode(char* str);
-int checkCycles(char* root);
-Node **getDependencies(char* str);
-int addDependency(char* parent, char* depend);
+int initGraph();
+int addNode(char* tar, char* dep, char* com);
+int removeNode(char* tar);
+int executeNodes(char* tar);
+char **getDependencies(char* dep);
 
 #endif
