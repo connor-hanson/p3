@@ -5,11 +5,13 @@ typedef struct {
 	char *target;
 	char *dependencies;
 	char *commands;
-} graphNode;
+} GraphNode;
 
 int initGraph();
-int addNode(char* tar, char* dep, char* com);
+int addNode(char* tar);
 int removeNode(char* tar);
+int addNodeDep(char* node, char* dep);
+int addNodeCmd(char* node, char* cmd);
 int executeNodes(char* tar);
 char **getDependencies(char* dep);
 

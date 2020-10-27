@@ -26,12 +26,20 @@ int getTarget(FILE *fp, char* target) {
     return 0;
 }
 
-void runTarget(FILE *fp, char* target) {
+// optionally specify a target to start at
+// Pass NULL as target if wanting to start from beginning of makefile
+void runParser(FILE *fp, char* target) {
     // find location of target in file
     char str[4096]; // 4K. Including terminating null byte
 
+    // TODO: add specific build specs later
+    if (target != NULL) {
+
+    }
+
     // line by line bby
     while (fgets(str, 4096, fp) != NULL) {
+        char* lastTarget;
         // check first char not whitespace or invalid
         if (str[0] == '#') {
             continue; // line is a comment line
@@ -59,38 +67,43 @@ void runTarget(FILE *fp, char* target) {
 
                 addNode(tok);
                 char* parentNode = tok;
+                lastTarget = tok; // might be issue w memory
 
                 // get the dependencies now. NULL in strtok to get next part of substr
                 while (tok != NULL) {
                     tok = strtok(NULL, " ");
                     if (tok != NULL) {
-                        addDependency(parentNode, tok); // parent -> tok
+                        addNodeDep(parentNode, tok); // parent -> tok
                     }
                 }  
             }
         }
 
         // if not target or comment, must be a command
+        if (str[0] == '\t') {
+            char* tok = strtok(str, "#");
+            addNodeCmd(lastTarget, tok);
+        }
 
+        // if none of these run, is blank. nothing happens
     }
 }
 
 int main(int argc, char* argv[]) {
     FILE *make = getMakeFile(); // file
-    Graph *g = createGraph();
-    if (g == NULL) {
+    int graphMade = initGraph();
+    if (graphMade == 0) {
         printf("error creatig graph");
         exit(0);
     }
 
     // if no additional arg, first build spec found in file
     if (argc == 1) {
-        char *target = "first";
-        runTarget(make, target);
+        runParser(make, NULL);
     }
     else if (argc == 2) {
         char *target = argv[1];
-        runTarget(make, target);
+        runParser(make, target);
     }
     else {
         printf("Only one target can be specified. Terminating.");
