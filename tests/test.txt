@@ -1,0 +1,8 @@
+all:#this is a comment
+	$(CC) $(CFLAGS) graph.c
+	$(CC) $(CFLAGS) parser.c
+	$(CC) $(CFLAGS) main.c
+	$(CC) -Wall -pedantic -o 537make parser.o graph.o main.o
+
+clean: 
+	rm -f graph.o parser.o main.o
