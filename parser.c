@@ -29,16 +29,23 @@ int getTarget(FILE *fp, char* target) {
 // optionally specify a target to start at
 // Pass NULL as target if wanting to start from beginning of makefile
 void runParser(FILE *fp, char* target) {
+    if (fp == NULL) {
+        printf("file pointer is NULL. terminating.\n");
+        exit(0);
+    }
     // find location of target in file
-    char str[4096]; // 4K. Including terminating null byte
+    char* str = malloc(4096 * sizeof(char)); // 4K. Including terminating null byte
 
     // TODO: add specific build specs later
     if (target != NULL) {
 
     }
 
+    int lineNum = 0;
+
     // line by line bby
     while (fgets(str, 4096, fp) != NULL) {
+        lineNum++;
         char* lastTarget;
         // check first char not whitespace or invalid
         if (str[0] == '#') {
@@ -48,19 +55,23 @@ void runParser(FILE *fp, char* target) {
         // MUST be a target line. Else is an error
         if (str[0] != '\t') {
             char *substr = str;
-            substr = strtok(str, "#"); // split before/after possible comments
+
+            // TODO use strchr instead of strtok ya dummy
+            substr = strtok(substr, "#"); // split before/after possible comments
             // returns entire string if no #
+            printf("%s\n", str);
 
-            char* tok = strtok(substr, ":"); // find : in line. if none -> fail
+            char* tarChar = strchr(substr, ':'); // messy but whatevs
+            char* tok = strtok(substr, ":");
 
-            if (strcmp(tok, substr) == 0) { // ie no :
-                printf("no ':' found in target line. terminating\n");
+            if (tarChar == NULL) { 
+                printf("%d%s%s\n", lineNum, ": <no ':' found in target line>", substr);
                 exit(0);
             } else { // valid target. ':' exists
                 // ensure no extra whitespace between target name and :
                 for (size_t i = 0; i < strlen(tok); ++i) {
                     if (tok[i] == ' ') {
-                        printf("invalid whitespace found in target line. terminating\n");
+                        printf("%s%d%s\n", "<", lineNum, ">: invalid whitespace found in target line. terminating\n");
                         exit(0);
                     }
                 }
@@ -87,31 +98,4 @@ void runParser(FILE *fp, char* target) {
 
         // if none of these run, is blank. nothing happens
     }
-}
-
-int main(int argc, char* argv[]) {
-    FILE *make = getMakeFile(); // file
-    int graphMade = initGraph();
-    if (graphMade == 0) {
-        printf("error creatig graph");
-        exit(0);
-    }
-
-    // if no additional arg, first build spec found in file
-    if (argc == 1) {
-        runParser(make, NULL);
-    }
-    else if (argc == 2) {
-        char *target = argv[1];
-        runParser(make, target);
-    }
-    else {
-        printf("Only one target can be specified. Terminating.");
-        exit(0);
-    }
-
-
-
-    free(make);
-    return 0;
 }
