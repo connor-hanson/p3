@@ -22,25 +22,11 @@ int initGraph() {
  *		dep - all dependencies
  * return 1 if successful, 0 otherwise
  */
-int addNode(char* tar) {
-	int execStat = 0;
-	
-	int tarSize = 0;
-	while(*(tar+tarSize) != '\0'){
-		tarSize++;
+GraphNode *addNode(char* tar) {
+	int nameSize = 0;
+	while(*(name+nameSize) != '\0'){
+		nameSize++;
 	}
-	
-	/*
-	int depSize = 0;
-	while(*(dep+depSize) != '\0'){
-		depSize++;
-	}
-	
-	// Parsing commands happens in a different step than adding the initial node. this might not work 
-	int comSize = 0;
-	while(*(com+comSize) != '\0'){
-		comSize++;
-	}*/
 	
 	GraphNode *newNode = malloc(sizeof(GraphNode));
 	if (newNode != NULL) {
@@ -49,43 +35,40 @@ int addNode(char* tar) {
 			newNode->target = tar;
 			graph[numNodes] = newNode;
 			numNodes++;
-			// FIXME: realloc's every time a node is added. Maybe make *2 when needs resizing to 
-			// reduce the amount of realloc operations
-			if ((graph = realloc(graph, (numNodes+1)*sizeof(GraphNode))) != NULL){
-				graphSize++;
-				execStat = 1;
+			if(numNodes >= graphSize){
+				if((graph = realloc(graph, (graphSize * 2)*sizeof(graphNode*))) != NULL){
+					graphSize = graphSize*2;
+				}
 			}
 		}
 	}
+	return newNode;
+}
 
-
-	// if((newNode = malloc(sizeof(GraphNode))) != NULL){
-	// 	if((newNode->target = malloc(tarSize*sizeof(char))) != NULL){
-	// 		if((newNode->dependencies = malloc(depSize*sizeof(char))) != NULL){
-	// 			if((newNode->commands = malloc(comSize*sizeof(char))) != NULL){
-	// 				newNode->target = tar;
-	// 				newNode->dependencies = dep;
-	// 				newNode->commands = com;
-	// 				graph[numNodes] = newNode;
-	// 				numNodes++;
-	// 				if((graph = realloc(graph, (numNodes+1)*sizeof(GraphNode))) != NULL){
-	// 					graphSize++;
-	// 					execStat = 1;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-	
+int addNodeDep(GraphNode *node, char *dep) {
+	int execStat = 0;
+	int depSize = 0;
+	while(*(dep+depSize) != '\0'){
+		depSize++;
+	}
+	if((node->dependencies = malloc(depSize*sizeof(char))) != NULL){
+		node->dependencies = dep;
+		execStat = 1;
+	}
 	return execStat;
 }
 
-int addNodeDep(char* node, char* dep) {
-	return -1;
-}
-
-int addNodeCmd(char* node, char* cmd) {
-	return -1;
+int addNodeCmd(GraphNode *node, char *cmd) {
+	int execStat = 0;
+	int cmdSize = 0;
+	while(*(cmd+cmdSize) != '\0'){
+		cmdSize++;
+	}
+	if((node->commands = malloc(cmdSize*sizeof(char))) != NULL){
+		node->commands = cmd;
+		execStat = 1;
+	}
+	return execStat;
 }
 
 /**
