@@ -8,10 +8,10 @@ typedef struct {
 } GraphNode;
 
 int initGraph();
-int addNode(char* tar);
+GraphNode *addNode(char* tar);
 int removeNode(char* tar);
-int addNodeDep(char* node, char* dep);
-int addNodeCmd(char* node, char* cmd);
+int addNodeDep(GraphNode *node, char *dep);
+int addNodeCmd(GraphNode *node, char *cmd);
 int executeNodes(char* tar);
 char **getDependencies(char* dep);
 
