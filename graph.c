@@ -11,7 +11,7 @@ int graphSize;
 int initGraph() {
 	if ((graph = malloc(sizeof(GraphNode*))) != NULL) {
 		numNodes = 0;
-		graphSize = 1;
+		graphSize = 10;
 		return 1;
 	} else {
 		return 0;
@@ -25,22 +25,26 @@ int initGraph() {
  */
 GraphNode *addNode(char* name) {
 	int nameSize = 0;
-	while(*(name+nameSize) != '\0'){
+	while(*(name+nameSize) != '\0'){ // prolly wanna optimize
 		nameSize++;
 	}
 	
 	GraphNode *newNode = malloc(sizeof(GraphNode));
+
 	if (newNode != NULL) {
+		if (numNodes == 0) { // init graph
+			graphRoot = newNode;
+		}
 		newNode->target = malloc(nameSize*sizeof(char));
 		if (newNode->target != NULL) {
 			newNode->target = name;
-			graph[numNodes] = newNode;
+			//graph[numNodes] = newNode;
 			numNodes++;
-			if(numNodes >= graphSize){
-				if((graph = realloc(graph, (graphSize * 2)*sizeof(GraphNode*))) != NULL){
-					graphSize = graphSize*2;
-				}
-			}
+			// if(numNodes >= graphSize){
+			// 	if((graph = realloc(graph, (graphSize * 2)*sizeof(GraphNode*))) != NULL){
+			// 		graphSize = graphSize*2;
+			// 	}
+			// }
 		}
 	}
 	return newNode;
@@ -75,6 +79,7 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 /**
  * @param:
  *		tar - target name
+ * REDO
  */
 int removeNode(char* tar){
 	int execStat = 0;
@@ -97,6 +102,11 @@ char **getDependencies(char* dep){
 	return NULL;
 }
 
-void freeGraph() {
-	free()
+int getNumNodes() {
+	return numNodes;
 }
+
+GraphNode* getGraphRoot() {
+	return graphRoot;
+}
+

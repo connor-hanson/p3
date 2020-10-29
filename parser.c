@@ -46,7 +46,7 @@ void runParser(FILE *fp, char* target) {
     // line by line bby
     while (fgets(str, 4096, fp) != NULL) {
         lineNum++;
-        char* lastTarget;
+        GraphNode *parentNode;
         // check first char not whitespace or invalid
         if (str[0] == '#') {
             continue; // line is a comment line
@@ -76,9 +76,9 @@ void runParser(FILE *fp, char* target) {
                     }
                 }
 
-                addNode(tok);
-                char* parentNode = tok;
-                lastTarget = tok; // might be issue w memory
+                parentNode = addNode(tok);
+                //char* parentNode = tok;
+                //lastTarget = tok; // might be issue w memory
 
                 // get the dependencies now. NULL in strtok to get next part of substr
                 while (tok != NULL) {
@@ -93,7 +93,7 @@ void runParser(FILE *fp, char* target) {
         // if not target or comment, must be a command
         if (str[0] == '\t') {
             char* tok = strtok(str, "#");
-            addNodeCmd(lastTarget, tok);
+            addNodeCmd(parentNode, tok);
         }
 
         // if none of these run, is blank. nothing happens

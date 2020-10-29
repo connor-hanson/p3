@@ -4,7 +4,7 @@
 #include "parser.h"
 #include "graph.h"
 
-void runProgram() {
+int main(int argc, char* argv[]) {
     FILE *make = getMakeFile(); // file
     int graphMade = initGraph();
     if (graphMade == 0) {
@@ -26,10 +26,5 @@ void runProgram() {
     }
 
     free(make);
-}
-
-int main(int argc, char* argv[]) {
-    runTests();
-    //runProgram();
     return 0;
 }

@@ -2,7 +2,7 @@
 #define GRAPH_H
 
 typedef struct {
-	char *target;
+	char *target; // same as node name
 	char *dependencies;
 	char *commands;
 } GraphNode;
@@ -13,6 +13,9 @@ int removeNode(char* tar);
 int addNodeDep(GraphNode *node, char *dep);
 int addNodeCmd(GraphNode *node, char *cmd);
 int executeNodes(char* tar);
-char **getDependencies(char* dep);
+char **getDependencies(char* dep); // what does this do again?
+
+int getNumNodes();
+GraphNode* getGraphRoot();
 
 #endif
