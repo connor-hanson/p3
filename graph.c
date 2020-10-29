@@ -3,6 +3,7 @@
 #include "graph.h"
 
 GraphNode **graph;
+GraphNode *graphRoot; // First node to be added to the graph
 int numNodes;
 int graphSize;
 
@@ -22,7 +23,7 @@ int initGraph() {
  *		dep - all dependencies
  * return 1 if successful, 0 otherwise
  */
-GraphNode *addNode(char* tar) {
+GraphNode *addNode(char* name) {
 	int nameSize = 0;
 	while(*(name+nameSize) != '\0'){
 		nameSize++;
@@ -30,13 +31,13 @@ GraphNode *addNode(char* tar) {
 	
 	GraphNode *newNode = malloc(sizeof(GraphNode));
 	if (newNode != NULL) {
-		newNode->target = malloc(tarSize*sizeof(char));
+		newNode->target = malloc(nameSize*sizeof(char));
 		if (newNode->target != NULL) {
-			newNode->target = tar;
+			newNode->target = name;
 			graph[numNodes] = newNode;
 			numNodes++;
 			if(numNodes >= graphSize){
-				if((graph = realloc(graph, (graphSize * 2)*sizeof(graphNode*))) != NULL){
+				if((graph = realloc(graph, (graphSize * 2)*sizeof(GraphNode*))) != NULL){
 					graphSize = graphSize*2;
 				}
 			}
@@ -94,4 +95,8 @@ int executeNodes(char* tar){
 }
 char **getDependencies(char* dep){
 	return NULL;
+}
+
+void freeGraph() {
+	free()
 }
