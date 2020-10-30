@@ -79,22 +79,22 @@ int testFreeGraphMem() {
 int main() {
     printf("starting tests\n");
     if (testInitGraph() != 1) {
-        printf("Failed to correctly set graph state variables. Test Failed.\n");
+        printf("Failed to correctly set graph state variables. \nTest Failed.\n");
         exit(0);
     }
 
     if (testAddGraphNode() != 1) {
-        printf("Failed to correctly add a graph node. Tests failed.\n");
+        printf("Failed to correctly add a graph node. \nTests failed.\n");
         exit(0);
     }
 
     if (testAddGraphDep() != 1) {
-        printf("Failed to correctly add graph dependencies. Tests Failed.\n");
+        printf("Failed to correctly add graph dependencies. \nTests Failed.\n");
         exit(0);
     }
 
     if (testAddGraphCmd() != 1) {
-        printf("Failed to correctly add commands to graph nodes. Tests Failed.\n");
+        printf("Failed to correctly add commands to graph nodes. \nTests Failed.\n");
         exit(0);
     }
 
@@ -104,7 +104,7 @@ int main() {
 
     // requires graph to work
     if (testRunParser() != 1) {
-        printf("Failed to correctly parse makefile input. Test Failed. \n");
+        printf("Failed to correctly parse makefile input. \nTest Failed. \n");
         exit(0);
     }
 

@@ -4,7 +4,10 @@
 typedef struct {
 	char *target; // same as node name
 	char *dependencies;
-	char *commands;
+	//char *commands;
+	char **commands;
+	int numCommands;
+	int commandCap;
 } GraphNode;
 
 int initGraph();

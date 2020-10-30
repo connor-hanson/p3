@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "graph.h"
 
 GraphNode **graph;
@@ -35,6 +36,11 @@ GraphNode *addNode(char* name) {
 		if (numNodes == 0) { // init graph
 			graphRoot = newNode;
 		}
+		// malloc commands array
+		newNode->commands = malloc(10 * sizeof(char*)); // room for 10 strings at first. Might not need to alloc?
+		newNode->numCommands = 0;
+		newNode->commandCap = 10;
+
 		newNode->target = malloc(nameSize*sizeof(char));
 		if (newNode->target != NULL) {
 			newNode->target = name;
@@ -64,16 +70,40 @@ int addNodeDep(GraphNode *node, char *dep) {
 }
 
 int addNodeCmd(GraphNode *node, char *cmd) {
-	int execStat = 0;
+	//int execStat = 0;
 	int cmdSize = 0;
 	while(*(cmd+cmdSize) != '\0'){
 		cmdSize++;
 	}
-	if((node->commands = malloc(cmdSize*sizeof(char))) != NULL){
-		node->commands = cmd;
-		execStat = 1;
+
+	// allocate string at correct array spot
+	(node->commands)[node->numCommands] = malloc(cmdSize * sizeof(char));
+	if (((node->commands)[node->numCommands]) == NULL) {
+		printf("Error allocating memory for command String");
+		return -1;
+	} else {
+		(node->commands)[node->numCommands] = cmd;
+		node->numCommands += 1;
+
+		// if at cap-1, resize *2
+		if ( node->numCommands == (node->commandCap - 1) ) {
+			node->commands = realloc(node->commands, (node->commandCap * 2) * sizeof(char*));
+			if (node->commands == NULL) {
+				printf("Error reallocating memory for command string array.");
+				return -1; // realloc failed
+			} else {
+				node->commandCap *= 2;
+			}
+		}
+
+		return 1; // successful
 	}
-	return execStat;
+
+	// if((node->commands = malloc(cmdSize*sizeof(char))) != NULL){
+	// 	node->commands = cmd;
+	// 	execStat = 1;
+	// }
+	// return execStat;
 }
 
 /**
