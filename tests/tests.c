@@ -81,6 +81,7 @@ int testAddGraphCmd() {
     }
 
     // add as much weird input as you can think of
+    // TODO: test what happens when we reach command capacity
 
     return 1;
 }

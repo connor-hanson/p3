@@ -22,11 +22,11 @@ int initGraph() {
  * @param:
  *		tar - target name
  *		dep - all dependencies
- * return 1 if successful, 0 otherwise
+ * return node if successful, NULL otherwise
  */
 GraphNode *addNode(char* name) {
 	int nameSize = 0;
-	while(*(name+nameSize) != '\0'){ // prolly wanna optimize
+	while(*(name+nameSize) != '\0'){ // prolly wanna optimize?
 		nameSize++;
 	}
 	
@@ -36,23 +36,31 @@ GraphNode *addNode(char* name) {
 		if (numNodes == 0) { // init graph
 			graphRoot = newNode;
 		}
-		// malloc commands array
-		newNode->commands = malloc(10 * sizeof(char*)); // room for 10 strings at first. Might not need to alloc?
-		newNode->numCommands = 0;
-		newNode->commandCap = 10;
 
+		// malloc commands array & associated fields
+		newNode->commands = malloc(5 * sizeof(char*)); // room for 5 strings at first. Might not need to alloc?
+		if (newNode->commands == NULL) {
+			printf("Error allocating memory space for commands array.\n");
+			return NULL;
+		}
+		newNode->numCommands = 0;
+		newNode->commandCap = 5;
+
+		// name allocation
 		newNode->target = malloc(nameSize*sizeof(char));
 		if (newNode->target != NULL) {
 			newNode->target = name;
-			//graph[numNodes] = newNode;
 			numNodes++;
-			// if(numNodes >= graphSize){
-			// 	if((graph = realloc(graph, (graphSize * 2)*sizeof(GraphNode*))) != NULL){
-			// 		graphSize = graphSize*2;
-			// 	}
-			// }
+		} else {
+			// malloc failed
+			printf("Error allocating memory for new node\n");
+			return NULL;
 		}
+	} else {
+		printf("Error allocating memory for new Node\n");
+		return NULL;
 	}
+
 	return newNode;
 }
 
