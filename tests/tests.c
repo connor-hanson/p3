@@ -64,12 +64,25 @@ int testAddGraphDep() {
     }
 
     // should also check that depA, depB, depC are all nodes as well
+    // try weird dependency names too
 
     return 1;
 }
 
 int testAddGraphCmd() {
-    return 0;
+    initGraph();
+    GraphNode *nodeA = addNode("TestA");
+    if (addNodeCmd(nodeA, "stupid cmd 1") != 1) {
+        return -1;
+    }
+
+    if (addNodeCmd(nodeA, "stupid\ncmd\n1") != 1) {
+        return -1;
+    }
+
+    // add as much weird input as you can think of
+
+    return 1;
 }
 
 int testFreeGraphMem() {
@@ -99,6 +112,7 @@ int main() {
     }
 
     if (testFreeGraphMem() != 1) {
+        printf("Failed to correctly free graph memory. \nTest Failed.\n");
         exit(0);
     }
 
