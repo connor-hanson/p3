@@ -30,39 +30,47 @@ int testRunParser() {
 }
 
 // check graph.c state variables
-int testInitGraph() {
+/*int testInitGraph() {
     if (initGraph() == 0) {
         return -1;
     } else return 1;
-}
+}*/
 
 int testAddGraphNode() {
-    initGraph();
+    //initGraph();
     GraphNode *nodeA = addNode("TestA");
+    GraphNode *nodeB = addNode("TestA");
     if (nodeA == NULL) {
         return -1;
-    } else if (strcmp(nodeA->target, "TestA") != 0) {
+    } else if (strcmp(nodeA->name, "TestA") != 0) {
         return -1;
+    }
+    if (nodeB == NULL) {
+        return -1;
+    } else if (strcmp(nodeB->name, "TestA") != 0) {
+        return -1;
+    } else if (nodeA != nodeB) {
+    	return -1;
     }
 
     return 1;
 }
 
 int testAddGraphDep() {
-    initGraph();
+    //initGraph();
     GraphNode *nodeA = addNode("TestA");
     if (addNodeDep(nodeA, "depA") != 1) {
         return -1;
     }
-
+    printf("A added succ\n");
     if (addNodeDep(nodeA, "depB") != 1) {
         return -1;
     }
-
+    printf("B added succ\n");
     if (addNodeDep(nodeA, "depC") != 1) {
         return -1;
     }
-
+    printf("C added succ\n");
     // should also check that depA, depB, depC are all nodes as well
     // try weird dependency names too
 
@@ -70,7 +78,7 @@ int testAddGraphDep() {
 }
 
 int testAddGraphCmd() {
-    initGraph();
+    //initGraph();
     GraphNode *nodeA = addNode("TestA");
     if (addNodeCmd(nodeA, "stupid cmd 1") != 1) {
         return -1;
@@ -92,10 +100,10 @@ int testFreeGraphMem() {
 
 int main() {
     printf("starting tests\n");
-    if (testInitGraph() != 1) {
+    /*if (testInitGraph() != 1) {
         printf("Failed to correctly set graph state variables. \nTest Failed.\n");
         exit(0);
-    }
+    }*/
 
     if (testAddGraphNode() != 1) {
         printf("Failed to correctly add a graph node. \nTests failed.\n");
