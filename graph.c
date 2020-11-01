@@ -1,125 +1,137 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/stat.h>
 #include "graph.h"
+#include "execution.h"
 
-GraphNode **graph;
 GraphNode *graphRoot; // First node to be added to the graph
-int numNodes;
-int graphSize;
+int numNodes = 0;
 
 // initialize graph, return 1 if successful, 0 otherwise
-int initGraph() {
-	if ((graph = malloc(sizeof(GraphNode*))) != NULL) {
+/*int initGraph() {
+	if ((graphRoot = malloc(sizeof(GraphNode))) != NULL) {
 		numNodes = 0;
 		graphSize = 10;
 		return 1;
 	} else {
 		return 0;
 	}
-}
+}*/
+
 /**
  * @param:
- *		tar - target name
- *		dep - all dependencies
- * return node if successful, NULL otherwise
+ *		name - node name
+ * return pointer to node if successful, null otherwise
  */
 GraphNode *addNode(char* name) {
-	int nameSize = 0;
-	while(*(name+nameSize) != '\0'){ // prolly wanna optimize?
-		nameSize++;
+	GraphNode *nodeExists = findNode(graphRoot, name);
+	if(nodeExists != NULL){
+		return nodeExists;
 	}
-	
-	GraphNode *newNode = malloc(sizeof(GraphNode));
 
+	GraphNode *newNode = malloc(sizeof(GraphNode));
 	if (newNode != NULL) {
 		if (numNodes == 0) { // init graph
 			graphRoot = newNode;
 		}
-
-		// malloc commands array & associated fields
-		newNode->commands = malloc(5 * sizeof(char*)); // room for 5 strings at first. Might not need to alloc?
-		if (newNode->commands == NULL) {
-			printf("Error allocating memory space for commands array.\n");
-			return NULL;
-		}
-		newNode->numCommands = 0;
-		newNode->commandCap = 5;
-
-		// name allocation
-		newNode->target = malloc(nameSize*sizeof(char));
-		if (newNode->target != NULL) {
-			newNode->target = name;
+		int nameSize = (int)strlen(name);
+		newNode->name = malloc(nameSize*sizeof(char));
+		if (newNode->name != NULL) {
+			strcpy(newNode->name, name);
+			//graph[numNodes] = newNode;
 			numNodes++;
-		} else {
-			// malloc failed
-			printf("Error allocating memory for new node\n");
+			newNode->hasBeenVisited = 0;
+			newNode->numDep = 0;
+			newNode->numCmd = 0;
+		}
+		else {
+			fprintf(stderr, "Error: malloc node name\n");
 			return NULL;
 		}
-	} else {
-		printf("Error allocating memory for new Node\n");
-		return NULL;
 	}
-
+	else {
+		fprintf(stderr, "Error: malloc node\n");
+	}
 	return newNode;
 }
 
 int addNodeDep(GraphNode *node, char *dep) {
 	int execStat = 0;
-	int depSize = 0;
-	while(*(dep+depSize) != '\0'){
-		depSize++;
+	GraphNode *depNode = addNode(dep); //create node for dep
+	
+	if (node->dependencies == NULL) { //if no dep array
+		node->dependencies = malloc(10*sizeof(GraphNode*));
+		if (node->dependencies != NULL) { //init dep array
+			node->depSize = 10;
+			node->numDep = 1;
+			node->dependencies[0] = depNode;
+			execStat = 1;
+		}
 	}
-	if((node->dependencies = malloc(depSize*sizeof(char))) != NULL){
-		node->dependencies = dep;
+	else {
+		if (node->numDep >= node->depSize) {
+			printf("went in here\n");
+			int currentSize = node->depSize;
+			size_t newSize = currentSize * 2 * sizeof(GraphNode*);
+			node->dependencies = realloc(node->dependencies, newSize);
+			if (node->dependencies != NULL) {
+				node->depSize = currentSize * 2;
+			}
+			else {
+				return 0;
+			}
+		}
+		node->dependencies[node->numDep] = depNode;
+		node->numDep++;
 		execStat = 1;
 	}
 	return execStat;
 }
 
 int addNodeCmd(GraphNode *node, char *cmd) {
-	//int execStat = 0;
-	int cmdSize = 0;
-	while(*(cmd+cmdSize) != '\0'){
-		cmdSize++;
+	int execStat = 0;
+	int cmdLen = (int)strlen(cmd);
+	char *entry = malloc(cmdLen*sizeof(char));
+	if (entry == NULL){
+		return 0;
 	}
-
-	// allocate string at correct array spot
-	(node->commands)[node->numCommands] = malloc(cmdSize * sizeof(char));
-	if (((node->commands)[node->numCommands]) == NULL) {
-		printf("Error allocating memory for command String");
-		return -1;
-	} else {
-		(node->commands)[node->numCommands] = cmd;
-		node->numCommands += 1;
-
-		// if at cap-1, resize *2
-		if ( node->numCommands == (node->commandCap - 1) ) {
-			node->commands = realloc(node->commands, (node->commandCap * 2) * sizeof(char*));
-			if (node->commands == NULL) {
-				printf("Error reallocating memory for command string array.");
-				return -1; // realloc failed
-			} else {
-				node->commandCap *= 2;
+	strcpy(entry, cmd);
+	
+	if (node->commands == NULL) { //if no command array
+		node->commands = malloc(10 * sizeof(char*));
+		if (node->commands != NULL) { //init command array
+			node->cmdSize = 10;
+			node->numCmd = 1;
+			node->commands[0] = entry;
+			execStat = 1;
+		}
+	}
+	else {
+		if (node->numCmd >= node->cmdSize) {
+			int currentSize = node->cmdSize;
+			size_t newSize = currentSize * 2 * sizeof(char*);
+			node->commands = realloc(node->commands, newSize);
+			if (node->commands != NULL) {
+				node->cmdSize = currentSize * 2;
+			}
+			else {
+				return 0;
 			}
 		}
-
-		return 1; // successful
+		node->commands[node->numCmd] = entry;
+		node->numCmd++;
+		execStat = 1;
 	}
-
-	// if((node->commands = malloc(cmdSize*sizeof(char))) != NULL){
-	// 	node->commands = cmd;
-	// 	execStat = 1;
-	// }
-	// return execStat;
+	return execStat;
 }
 
 /**
  * @param:
- *		tar - target name
+ *		name - target name
  * REDO
  */
-int removeNode(char* tar){
+/*int removeNode(char* name){
 	int execStat = 0;
 	int nodeIndex = 0;
 	while(strcmp(tar, graph[nodeIndex]->target) != 0){
@@ -132,10 +144,117 @@ int removeNode(char* tar){
 	free(node);
 	execStat = 1;
 	return execStat;
+}*/
+
+//return 0 if failure (cycle, file missing)
+//		 1 otherwise
+void executeNode(GraphNode *root, char *visitedNodes) {
+	if (visitedNodes != NULL && strstr(visitedNodes, root->name) != NULL) {
+		fprintf(stderr, "Error: dependency cycle in %s\n", visitedNodes);
+		exit(0);
+	}
+	char *tempStack;
+	int depsModded = 0;
+	int i;
+	for (i = 0; i < root->numDep; i++) {
+		int visited = root->dependencies[i]->hasBeenVisited; //dont visit if already done
+		if (!visited) {
+			if (visitedNodes != NULL) {
+				int stackLength = (int)strlen(visitedNodes);
+				tempStack = malloc(stackLength * sizeof(char));
+			}
+			else {
+				tempStack = malloc(sizeof(char));
+			}
+			if (tempStack != NULL) {
+				if (visitedNodes != NULL) {
+					strcpy(tempStack, visitedNodes);
+				}
+				else {
+					strcpy(tempStack, "");
+				}
+				strncat(tempStack, root->name, strlen(root->name)); //add root to stack
+				executeNode(root->dependencies[i], tempStack);
+				/*if (modded == 0) { //make sure there's no cycles
+					return 0;
+				}*/
+				free(tempStack);
+			}
+		}
+		int shouldCompile = childModded(root, root->dependencies[i]);
+		if (shouldCompile) {
+			depsModded = 1;
+		}
+	}
+	
+	if (root->numDep > 0) {
+		if (depsModded) {
+			executeCmd(root->commands, root->numCmd);
+		}
+	}
+	FILE *sourceFile = fopen(root->name, "r");
+	if (sourceFile == NULL) {
+		fprintf(stderr, "Error: %s not found\n", root->name);
+		exit(0);
+	}
+	fclose(sourceFile);
 }
-int executeNodes(char* tar){
-	return 0;
+
+GraphNode *findNode(GraphNode *startNode, char *name){
+	if (startNode != NULL) {
+		int compare = strcmp(startNode->name, name);
+		if (compare == 0) {
+			return startNode;
+		}
+		
+		int i;
+		for (i = 0; i < startNode->numDep; i++) {
+			GraphNode *result = findNode(startNode->dependencies[i], name);
+			if (result != NULL) {
+				return result;
+			}
+		}
+	}
+	return NULL;
 }
+
+void freeNode(GraphNode *root) {
+	int i;
+	for (i = 0; i < root->numDep; i++) {
+		if (root->dependencies[i]->name != NULL) {
+			freeNode(root->dependencies[i]);
+		}
+	}
+	free(root);
+}
+
+//return 1 if should compile
+//		 0 if not
+int childModded(GraphNode *parent, GraphNode *child){
+	if (parent != NULL && child != NULL) {
+		struct stat parentFile, childFile;
+		int parentSucceed = stat(parent->name, &parentFile);
+		int childSucceed = stat(child->name, &childFile);
+		if (parentSucceed != 0) {
+			return 1;
+		}
+		if (childSucceed != 0) {
+			fprintf(stderr, "Error: %s not found for %s\n", child->name, parent->name);
+			exit(0);
+		}
+		if (parentFile.st_mtime > childFile.st_mtime) {
+			return 1;
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		fprintf(stderr, "Error: nodes not found\n");
+		exit(0);
+	}
+}
+
 char **getDependencies(char* dep){
 	return NULL;
 }
