@@ -267,3 +267,6 @@ GraphNode* getGraphRoot() {
 	return graphRoot;
 }
 
+void printGraph() {
+	return;
+}

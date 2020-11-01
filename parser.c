@@ -52,6 +52,10 @@ void runParser(FILE *fp, char* target) {
             continue; // line is a comment line
         }
 
+        if (str[0] == '\0' || str[0] == '\n') {
+            continue; // blank line
+        }
+
         // MUST be a target line. Else is an error
         if (str[0] != '\t') {
             char *substr = str;
@@ -59,13 +63,13 @@ void runParser(FILE *fp, char* target) {
             // TODO use strchr instead of strtok ya dummy
             substr = strtok(substr, "#"); // split before/after possible comments
             // returns entire string if no #
-            printf("%s\n", str);
+            //printf("%s\n", str);
 
             char* tarChar = strchr(substr, ':'); // messy but whatevs
             char* tok = strtok(substr, ":");
 
             if (tarChar == NULL) { 
-                printf("%d%s%s\n", lineNum, ": <no ':' found in target line>", substr);
+                printf("%d%s%s\n", lineNum, ": <no ':' found in target line>", tok);
                 exit(0);
             } else { // valid target. ':' exists
                 // ensure no extra whitespace between target name and :
