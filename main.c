@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "parser.h"
+#include "graph.h"
 
 int main(int argc, char* argv[]) {
     FILE *make = getMakeFile(); // file
@@ -13,13 +14,16 @@ int main(int argc, char* argv[]) {
 
     // if no additional arg, first build spec found in file
     runParser(make);
-
+    GraphNode *root = getGraphRoot();
+    executeNode(root, NULL);
+    freeNode(root);
     if (argc > 1) {
         if (argc > 2) {
             printf("Can't specify more than one target. terminating\n");
             exit(0);
         } else {
             char* buildTarget = argv[1];
+            printf("argv: %s\n", buildTarget);
         }
     }
     // if (argc == 1) {
