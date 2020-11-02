@@ -7,6 +7,7 @@
 
 GraphNode *graphRoot; // First node to be added to the graph
 int numNodes = 0;
+int visitedBool = 1; // flips each time search is used
 
 // initialize graph, return 1 if successful, 0 otherwise
 /*int initGraph() {
@@ -30,6 +31,7 @@ int numNodes = 0;
  * 		NULL if error occurs (node exists, malloc error)
  */
 GraphNode *addNode(char* name) {
+	// check if node exists
 	GraphNode *nodeExists = getNode(graphRoot, name);
 	if(nodeExists != NULL) { // node already in graph, return reference
 		return nodeExists;
@@ -48,7 +50,7 @@ GraphNode *addNode(char* name) {
 			strcpy(newNode->name, name);
 			//graph[numNodes] = newNode;
 			numNodes++;
-			newNode->hasBeenVisited = 0;
+			newNode->visited = 0;
 			newNode->numDep = 0;
 			newNode->numCmd = 0;
 		} 
@@ -64,6 +66,7 @@ GraphNode *addNode(char* name) {
 		fprintf(stderr, "Error: malloc node\n");
 		return NULL;
 	}
+	//printf("added node %s\n", newNode->name);
 	return newNode;
 }
 
@@ -81,7 +84,7 @@ GraphNode *addNode(char* name) {
  */ 
 int addNodeDep(GraphNode *node, char *dep) {
 	int execStat = 0;
-	GraphNode *depNode = addNode(dep); //create node for dep
+	GraphNode *depNode = addNode(dep); //create/get node for dep
 
 	if (node == NULL) {
 		return 0;
@@ -98,7 +101,7 @@ int addNodeDep(GraphNode *node, char *dep) {
 	}
 	else {
 		if (node->numDep >= node->depSize) {
-			printf("went in here\n");
+			//printf("went in here\n");
 			int currentSize = node->depSize;
 			size_t newSize = currentSize * 2 * sizeof(GraphNode*);
 			node->dependencies = realloc(node->dependencies, newSize);
@@ -113,6 +116,7 @@ int addNodeDep(GraphNode *node, char *dep) {
 		node->numDep++;
 		execStat = 1;
 	}
+	//printf("\tadded node dependency %s to node %s\n", depNode->name, node->name);
 	return execStat;
 }
 
@@ -137,7 +141,7 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 		return 0;
 	}
 	strcpy(entry, cmd);
-	printf("entry = %s\n", entry);
+	//printf("entry = %s\n", entry);
 	if (node->commands == NULL) { //if no command array
 		node->commands = malloc(10 * sizeof(char*));
 		if (node->commands != NULL) { //init command array
@@ -145,7 +149,8 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 			node->numCmd = 1;
 			node->commands[0] = entry;
 			printf("element 0: %s\n", node->commands[0]);
-			execStat = 1;
+			//execStat = 1;
+			return 1;
 		} else {
 			printf("Error allocating memory to command array\n");
 			return 0;
@@ -166,9 +171,11 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 		}
 		node->commands[node->numCmd] = entry;
 		node->numCmd++;
-		execStat = 1;
+		//execStat = 1;
+		return 1;
 	}
-	printf("added: %s\n",node->commands[node->numCmd-1]);
+	//printf("added: %s\n",node->commands[node->numCmd-1]);
+	//printf("\tadded command %s to node %s\n", node->commands[node->numCmd-1], node->name);
 	return execStat;
 }
 
@@ -218,9 +225,11 @@ void executeNode(GraphNode *root, char *visitedNodes) {
 	char *tempStack;
 	int depsModded = 0;
 
+	//dumpNode(root);
+
 	// loop through current node's dependency list
 	for (int i = 0; i < root->numDep; i++) {
-		int visited = root->dependencies[i]->hasBeenVisited; //dont visit if already done
+		int visited = root->dependencies[i]->visited; //dont visit if already done
 		if (!visited) {
 			if (visitedNodes != NULL) {
 				int stackLength = (int)strlen(visitedNodes);
@@ -255,14 +264,15 @@ void executeNode(GraphNode *root, char *visitedNodes) {
 	// if root has dependencies and they require re-compilation
 	if (root->numDep > 0 && depsModded) {
 		//if (depsModded) {
-		printf("check cmd: %s\n", root->commands[0]);
+		//printf("check cmd: %s\n", root->commands[0]);
 		executeCmd(root->commands, root->numCmd);
 		//}
-		printf("Executing: %s\n", root->name);
+		//printf("Executing: %s\n", root->name);
 	}
 	
 	int nameLength = (int)strlen(root->name);
 	FILE *sourceFile;
+	// what does this do?
 	if (root->name[nameLength-1] == '\n') {
 		char tempName[nameLength];
 		memcpy(tempName, root->name, nameLength-1);
@@ -286,37 +296,93 @@ void executeNode(GraphNode *root, char *visitedNodes) {
  * 		name: search for node with name {name}
  * @return: 
  * 		result: Pointer to node {name} if found
- * 		Null: No matching node found
+ * 		Null: No matching node found or invalid params
  */
-GraphNode *getNode(GraphNode *startNode, char *name){
-	if (startNode != NULL) {
-		int compare = strcmp(startNode->name, name);
-		if (compare == 0) {
-			return startNode;
-		}
-		
-		int i;
-		for (i = 0; i < startNode->numDep; i++) {
-			GraphNode *result = getNode(startNode->dependencies[i], name);
-			if (result != NULL) {
-				return result;
+GraphNode *getNodeHelper(GraphNode *startNode, char *name){
+
+	if (startNode == NULL) { // base case, bad param
+		printf("No graph root parameter provided for search\n");
+		return NULL;
+	}
+
+	if (strcmp(startNode->name, name) == 0) { // base case, name found
+		return startNode;
+	}
+
+	startNode->visited = visitedBool; // mark visited
+
+	for (int i = 0; i < startNode->numDep; ++i) {
+		// recursive case, visit all dependent nodes
+		if (startNode->dependencies[i]->visited != visitedBool) {
+			GraphNode *res = getNodeHelper(startNode->dependencies[i], name);
+			if (res != NULL) {
+				return res;
 			}
 		}
 	}
-	return NULL;
+
+	return NULL; // not found
+}
+
+// helper function. just switch up flags
+GraphNode *getNode(GraphNode *startNode, char *name) {
+	visitedBool *= -1;
+	return getNodeHelper(startNode, name);
 }
 
 /**
- * Recursively free graph starting from node {root}
+ * Recursively free graph starting from node {root}. DFS
  */
-void freeNode(GraphNode *root) {
-	int i;
-	for (i = 0; i < root->numDep; i++) {
-		if (root->dependencies[i]->name != NULL) {
-			freeNode(root->dependencies[i]);
+void freeNodeHelper(GraphNode *root) {
+	if (root == NULL) { // base case, bad param
+		printf("No graph root parameter provided for search\n");
+		return;
+	}
+
+	root->visited = visitedBool; // mark visited
+
+	for (int i = 0; i < root->numDep; ++i) {
+		// recursive case, visit all dependent nodes
+		if (root->dependencies[i] != NULL && root->dependencies[i]->visited != visitedBool) {
+			freeNodeHelper(root->dependencies[i]);
 		}
 	}
+
+	// free each of the malloc'd pointers inside the struct, set all vals to NULL/0
+	free(root->name);
+	root->name = NULL;
+
+	free(root->dependencies);
+	root->dependencies = NULL;
+
+	for (int i = 0; i < root->numCmd; ++i) {
+		free(root->commands[i]);
+		root->commands[i] = NULL;
+	}
+	free(root->commands);
+	root->commands = NULL;
+
+	root->depSize = 0;
+	root->numDep = 0;
+	root->cmdSize = 0;
+	root->numCmd = 0;
+	root->visited = 0;
+
 	free(root);
+	root = NULL;
+	numNodes--;
+}
+
+// helper method. param checks and flip visited flag
+void freeNode(GraphNode *root) {
+	visitedBool *= -1;
+	if (root == NULL) {
+		printf("Can't free null parameter");
+	} else {
+		freeNodeHelper(root);
+		graphRoot = root;
+	}
+	
 }
 
 /**
@@ -378,6 +444,3 @@ GraphNode* getGraphRoot() {
 	return graphRoot;
 }
 
-void printGraph() {
-	return;
-}

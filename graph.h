@@ -11,7 +11,7 @@ struct GraphNode{
 	int numDep;
 	int cmdSize;
 	int numCmd;
-	int hasBeenVisited;
+	int visited;
 };
 
 //int initGraph();

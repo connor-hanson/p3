@@ -25,6 +25,8 @@ int main(int argc, char* argv[]) {
             char* buildTarget = argv[1];
             printf("argv: %s\n", buildTarget);
         }
+    } else {
+        
     }
     // if (argc == 1) {
     //     runParser(make, NULL);

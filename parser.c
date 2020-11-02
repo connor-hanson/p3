@@ -6,7 +6,7 @@
 
 // makefile -> Makefile. If neither found, exit
 FILE* getMakeFile() {
-    FILE *make = fopen("makefile", "r");
+    FILE *make = fopen("testmakefile", "r");
 
     if (make == NULL) {
         make = fopen("Makefile", "r");
@@ -35,6 +35,7 @@ void runParser(FILE *fp) {
 
     // line by line bby
     while (fgets(str, 4096, fp) != NULL) {
+        printf("%s%d%s\n", "lineNum: <", lineNum, ">");
         lineNum++;
         GraphNode *parentNode;
 
