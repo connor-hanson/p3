@@ -42,12 +42,13 @@ GraphNode *addNode(char* name) {
 		if (numNodes == 0) { // init graph
 			graphRoot = newNode;
 		}
-		int nameSize = (int)strlen(name);
+		int nameSize = (int)strlen(name)+1;
 		newNode->name = malloc(nameSize*sizeof(char));
 
 		// init important node fields, inc node count
 		if (newNode->name != NULL) {
 			strcpy(newNode->name, name);
+			newNode->name[nameSize-1] = '\0';
 			//graph[numNodes] = newNode;
 			numNodes++;
 			newNode->visited = 0;
@@ -133,7 +134,7 @@ int addNodeDep(GraphNode *node, char *dep) {
  */ 
 int addNodeCmd(GraphNode *node, char *cmd) {
 	int execStat = 0;
-	int cmdLen = (int)strlen(cmd);
+	int cmdLen = (int)strlen(cmd)+1;
 	char *entry = malloc(cmdLen*sizeof(char));
 
 	if (entry == NULL){
@@ -141,16 +142,15 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 		return 0;
 	}
 	strcpy(entry, cmd);
-	//printf("entry = %s\n", entry);
+
+	entry[cmdLen-1] = '\0';
 	if (node->commands == NULL) { //if no command array
 		node->commands = malloc(10 * sizeof(char*));
 		if (node->commands != NULL) { //init command array
 			node->cmdSize = 10;
 			node->numCmd = 1;
 			node->commands[0] = entry;
-			printf("element 0: %s\n", node->commands[0]);
-			//execStat = 1;
-			return 1;
+			execStat = 1;
 		} else {
 			printf("Error allocating memory to command array\n");
 			return 0;
@@ -222,6 +222,8 @@ void executeNode(GraphNode *root, char *visitedNodes) {
 		exit(0);
 	}
 
+	root->visited = 1;
+
 	char *tempStack;
 	int depsModded = 0;
 
@@ -232,7 +234,7 @@ void executeNode(GraphNode *root, char *visitedNodes) {
 		int visited = root->dependencies[i]->visited; //dont visit if already done
 		if (!visited) {
 			if (visitedNodes != NULL) {
-				int stackLength = (int)strlen(visitedNodes);
+				int stackLength = (int)strlen(visitedNodes)+1;
 				tempStack = malloc(stackLength * sizeof(char));
 			}
 			else {
@@ -264,19 +266,18 @@ void executeNode(GraphNode *root, char *visitedNodes) {
 	// if root has dependencies and they require re-compilation
 	if (root->numDep > 0 && depsModded) {
 		//if (depsModded) {
-		//printf("check cmd: %s\n", root->commands[0]);
+		printf("execing %s\n", root->name);
 		executeCmd(root->commands, root->numCmd);
 		//}
-		//printf("Executing: %s\n", root->name);
 	}
 	
-	int nameLength = (int)strlen(root->name);
+	int nameLength = (int)strlen(root->name)+1;
 	FILE *sourceFile;
-	// what does this do?
-	if (root->name[nameLength-1] == '\n') {
-		char tempName[nameLength];
-		memcpy(tempName, root->name, nameLength-1);
-		tempName[nameLength-1] = '\0';
+	if (root->name[nameLength-2] == '\n') {
+		char tempName[nameLength-1];
+		memcpy(tempName, root->name, nameLength-2);
+		tempName[nameLength-2] = '\0';
+		printf("opening: %s\n", tempName);
 		sourceFile = fopen(tempName, "r");
 	}
 	else {

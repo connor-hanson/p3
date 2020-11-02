@@ -169,13 +169,6 @@ int testGetNode() {
     return 1;
 }
 
-int testChildModded() {
-    struct stat parentFile, childFile;
-    parentTime = stat("mtime1");
-    // need files to test
-    return 0;
-}
-
 int testFreeGraphMem() {
     return 0;
 }
