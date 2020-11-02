@@ -45,7 +45,8 @@ void runParser(FILE *fp) {
 
         // if not target or comment, must be a command
         if (str[0] == '\t') {
-            char* tok = strtok(str, "#");
+            char* tok = strtok(&str[1], "#");
+            tok = strtok(tok, "\n");
             addNodeCmd(parentNode, tok);
         }
 
