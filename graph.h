@@ -19,9 +19,9 @@ GraphNode *addNode(char* name);
 //int removeNode(char* name);
 int addNodeDep(GraphNode *node, char *dep);
 int addNodeCmd(GraphNode *node, char *cmd);
-void executeNodes(GraphNode *root, char *visitedNodes);
+void executeNode(GraphNode *root, char *visitedNodes);
 GraphNode *getNode(GraphNode *startNode, char *name);
-char **getDependencies(char* dep); // what does this do again?
+//char **getDependencies(char* dep); // what does this do again?
 void freeNode(GraphNode *root);
 int getNumNodes();
 int childModded(GraphNode *parent, GraphNode *child);
