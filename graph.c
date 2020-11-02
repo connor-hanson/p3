@@ -20,13 +20,18 @@ int numNodes = 0;
 }*/
 
 /**
- * @param:
- *		name - node name
- * return pointer to node if successful, null otherwise
+ * Add node {name} to graph. 
+ * 
+ * @params: 
+ * 		name: node to be added
+ * 
+ * @return:
+ * 		Pointer to node if successful
+ * 		NULL if error occurs (node exists, malloc error)
  */
 GraphNode *addNode(char* name) {
-	GraphNode *nodeExists = findNode(graphRoot, name);
-	if(nodeExists != NULL){
+	GraphNode *nodeExists = getNode(graphRoot, name);
+	if(nodeExists != NULL) { // node already in graph, return reference
 		return nodeExists;
 	}
 
@@ -37,6 +42,8 @@ GraphNode *addNode(char* name) {
 		}
 		int nameSize = (int)strlen(name);
 		newNode->name = malloc(nameSize*sizeof(char));
+
+		// init important node fields, inc node count
 		if (newNode->name != NULL) {
 			strcpy(newNode->name, name);
 			//graph[numNodes] = newNode;
@@ -44,21 +51,41 @@ GraphNode *addNode(char* name) {
 			newNode->hasBeenVisited = 0;
 			newNode->numDep = 0;
 			newNode->numCmd = 0;
-		}
+		} 
+		
 		else {
 			fprintf(stderr, "Error: malloc node name\n");
 			return NULL;
 		}
-	}
+
+	} 
+	
 	else {
 		fprintf(stderr, "Error: malloc node\n");
+		return NULL;
 	}
 	return newNode;
 }
 
+/**
+ * Add node dependency {dep} to parent node {node}. node -> dep
+ * Create node for dependency if it does not yet exist
+ * 
+ * @params:
+ * 		node: Node ptr to add depency to
+ * 		dep: String naming the dependency to add
+ * 
+ * @returns: 
+ * 		1: {node} valid and dependency successfully added
+ * 		0: Error
+ */ 
 int addNodeDep(GraphNode *node, char *dep) {
 	int execStat = 0;
 	GraphNode *depNode = addNode(dep); //create node for dep
+
+	if (node == NULL) {
+		return 0;
+	}
 	
 	if (node->dependencies == NULL) { //if no dep array
 		node->dependencies = malloc(10*sizeof(GraphNode*));
@@ -89,11 +116,24 @@ int addNodeDep(GraphNode *node, char *dep) {
 	return execStat;
 }
 
+/**
+ * Add command string {cmd} to {node}
+ * 
+ * @params: 
+ * 		node: node pointer to add command to
+ * 		cmd: string containing command line to be parsed and executed later
+ * 
+ * @return:
+ * 		0 - Some error adding command to node
+ * 		1 - Command correctly added to node
+ */ 
 int addNodeCmd(GraphNode *node, char *cmd) {
 	int execStat = 0;
 	int cmdLen = (int)strlen(cmd);
 	char *entry = malloc(cmdLen*sizeof(char));
+
 	if (entry == NULL){
+		printf("Error allocating memory to command string");
 		return 0;
 	}
 	strcpy(entry, cmd);
@@ -105,8 +145,12 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 			node->numCmd = 1;
 			node->commands[0] = entry;
 			execStat = 1;
+		} else {
+			printf("Error allocating memory to command array\n");
+			return 0;
 		}
 	}
+
 	else {
 		if (node->numCmd >= node->cmdSize) {
 			int currentSize = node->cmdSize;
@@ -148,15 +192,32 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 
 //return 0 if failure (cycle, file missing)
 //		 1 otherwise
+
+/**
+ * Traverse Graph (DFS?) & execute commands on each node
+ * 
+ * @params
+ * 		root: root node for traversal. Changes depending on whether user specifies build spec
+ * 			  *graphRoot if none specified
+ * 		visitedNodes: string containing space separated names of nodes which have been visited
+ * 
+ * @return
+ * 		1: Good
+ * 		0: Failure (cycle, file missing)
+ */ 
 void executeNode(GraphNode *root, char *visitedNodes) {
+
+	// nodes have been visited, and one of the names nodes is the same as the current root -> error
 	if (visitedNodes != NULL && strstr(visitedNodes, root->name) != NULL) {
 		fprintf(stderr, "Error: dependency cycle in %s\n", visitedNodes);
 		exit(0);
 	}
+
 	char *tempStack;
 	int depsModded = 0;
-	int i;
-	for (i = 0; i < root->numDep; i++) {
+
+	// loop through current node's dependency list
+	for (int i = 0; i < root->numDep; i++) {
 		int visited = root->dependencies[i]->hasBeenVisited; //dont visit if already done
 		if (!visited) {
 			if (visitedNodes != NULL) {
@@ -181,17 +242,21 @@ void executeNode(GraphNode *root, char *visitedNodes) {
 				free(tempStack);
 			}
 		}
-		int shouldCompile = childModded(root, root->dependencies[i]);
-		if (shouldCompile) {
+ 
+		//int shouldCompile = childModded(root, root->dependencies[i]);
+		// check if build times require re-compilation
+		if (childModded(root, root->dependencies[i])) {
 			depsModded = 1;
 		}
 	}
 	
-	if (root->numDep > 0) {
-		if (depsModded) {
-			executeCmd(root->commands, root->numCmd);
-		}
+	// if root has dependencies and they require re-compilation
+	if (root->numDep > 0 && depsModded) {
+		//if (depsModded) {
+		executeCmd(root->commands, root->numCmd);
+		//}
 	}
+
 	FILE *sourceFile = fopen(root->name, "r");
 	if (sourceFile == NULL) {
 		fprintf(stderr, "Error: %s not found\n", root->name);
@@ -200,7 +265,16 @@ void executeNode(GraphNode *root, char *visitedNodes) {
 	fclose(sourceFile);
 }
 
-GraphNode *findNode(GraphNode *startNode, char *name){
+/**
+ * (Recursively) Get node {name} using {startNode} as base Node. 
+ * @params: 
+ * 		startNode: node to start search from
+ * 		name: search for node with name {name}
+ * @return: 
+ * 		result: Pointer to node {name} if found
+ * 		Null: No matching node found
+ */
+GraphNode *getNode(GraphNode *startNode, char *name){
 	if (startNode != NULL) {
 		int compare = strcmp(startNode->name, name);
 		if (compare == 0) {
@@ -209,7 +283,7 @@ GraphNode *findNode(GraphNode *startNode, char *name){
 		
 		int i;
 		for (i = 0; i < startNode->numDep; i++) {
-			GraphNode *result = findNode(startNode->dependencies[i], name);
+			GraphNode *result = getNode(startNode->dependencies[i], name);
 			if (result != NULL) {
 				return result;
 			}
@@ -218,6 +292,9 @@ GraphNode *findNode(GraphNode *startNode, char *name){
 	return NULL;
 }
 
+/**
+ * Recursively free graph starting from node {root}
+ */
 void freeNode(GraphNode *root) {
 	int i;
 	for (i = 0; i < root->numDep; i++) {
@@ -228,27 +305,47 @@ void freeNode(GraphNode *root) {
 	free(root);
 }
 
-//return 1 if should compile
-//		 0 if not
+/**
+ * Check if {parent} is older than {child}. If so, return 1 - indicating that {parent} needs to be recompiled
+ * 
+ * @params: 
+ * 		parent: should be older
+ * 		child: should be newer
+ * 
+ * @return: 
+ * 		1: recompile parent 
+ * 		0: good
+ * 		-1: Error
+ */ 
 int childModded(GraphNode *parent, GraphNode *child){
 	if (parent != NULL && child != NULL) {
+		// store data values in parent/childfile
 		struct stat parentFile, childFile;
+
+		// check if files exist?
 		int parentSucceed = stat(parent->name, &parentFile);
 		int childSucceed = stat(child->name, &childFile);
+
+		// if parent file DNE, needs compilation anyway
 		if (parentSucceed != 0) {
 			return 1;
 		}
+
+		// if child file DNE, no dependency
 		if (childSucceed != 0) {
 			fprintf(stderr, "Error: %s not found for %s\n", child->name, parent->name);
 			exit(0);
 		}
+
+		// if parent older than child, recompile
 		if (parentFile.st_mtime > childFile.st_mtime) {
 			return 1;
 		}
-		else {
+		else { // no recompile
 			return 0;
 		}
 	}
+
 	else {
 		fprintf(stderr, "Error: nodes not found\n");
 		exit(0);

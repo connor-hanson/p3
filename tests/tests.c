@@ -22,7 +22,7 @@ int testRunParser() {
     }
 
     // first with no target
-    runParser(testFile, NULL);
+    runParser(testFile);
     fclose(testFile);
     return 1;
 }

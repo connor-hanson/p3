@@ -16,4 +16,4 @@ test:
 	$(CC) -Wall -pedantic -o maketest parser.o graph.o execution.o tests.o
 
 clean: 
-	rm -f graph.o parser.o main.o testParser.o testGraph.o tests.o maketest 537make
+	rm -f graph.o parser.o main.o testParser.o testGraph.o tests.o execution.o maketest 537make

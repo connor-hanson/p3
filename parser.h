@@ -3,6 +3,6 @@
 
 FILE* getMakeFile();
 
-void runParser(FILE *fp, char *target);
+void runParser(FILE *fp);
 
 #endif

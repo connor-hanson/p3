@@ -12,17 +12,27 @@ int main(int argc, char* argv[]) {
     }*/
 
     // if no additional arg, first build spec found in file
-    if (argc == 1) {
-        runParser(make, NULL);
+    runParser(make);
+
+    if (argc > 1) {
+        if (argc > 2) {
+            printf("Can't specify more than one target. terminating\n");
+            exit(0);
+        } else {
+            char* buildTarget = argv[1];
+        }
     }
-    else if (argc == 2) {
-        char *target = argv[1];
-        runParser(make, target);
-    }
-    else {
-        printf("Only one target can be specified. Terminating.");
-        exit(0);
-    }
+    // if (argc == 1) {
+    //     runParser(make, NULL);
+    // }
+    // else if (argc == 2) {
+    //     char *target = argv[1];
+    //     runParser(make, target);
+    // }
+    // else {
+    //     printf("Only one target can be specified. Terminating.");
+    //     exit(0);
+    // }
 
     free(make);
     return 0;

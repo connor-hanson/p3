@@ -21,14 +21,9 @@ FILE* getMakeFile() {
     return make;
 }
 
-// return 1 if target is in makefile. else -1
-int getTarget(FILE *fp, char* target) {
-    return 0;
-}
-
 // optionally specify a target to start at
 // Pass NULL as target if wanting to start from beginning of makefile
-void runParser(FILE *fp, char* target) {
+void runParser(FILE *fp) {
     if (fp == NULL) {
         printf("file pointer is NULL. terminating.\n");
         exit(0);
@@ -36,24 +31,22 @@ void runParser(FILE *fp, char* target) {
     // find location of target in file
     char* str = malloc(4096 * sizeof(char)); // 4K. Including terminating null byte
 
-    // TODO: add specific build specs later
-    if (target != NULL) {
-
-    }
-
     int lineNum = 0;
 
     // line by line bby
     while (fgets(str, 4096, fp) != NULL) {
         lineNum++;
         GraphNode *parentNode;
-        // check first char not whitespace or invalid
-        if (str[0] == '#') {
-            continue; // line is a comment line
+
+        if (str[0] == '#' || str[0] == '\0' || str[0] == '\n') {
+            continue; // blank line or comment
         }
 
-        if (str[0] == '\0' || str[0] == '\n') {
-            continue; // blank line
+
+        // if not target or comment, must be a command
+        if (str[0] == '\t') {
+            char* tok = strtok(str, "#");
+            addNodeCmd(parentNode, tok);
         }
 
         // MUST be a target line. Else is an error
@@ -81,8 +74,6 @@ void runParser(FILE *fp, char* target) {
                 }
 
                 parentNode = addNode(tok);
-                //char* parentNode = tok;
-                //lastTarget = tok; // might be issue w memory
 
                 // get the dependencies now. NULL in strtok to get next part of substr
                 while (tok != NULL) {
@@ -94,12 +85,5 @@ void runParser(FILE *fp, char* target) {
             }
         }
 
-        // if not target or comment, must be a command
-        if (str[0] == '\t') {
-            char* tok = strtok(str, "#");
-            addNodeCmd(parentNode, tok);
-        }
-
-        // if none of these run, is blank. nothing happens
     }
 }
