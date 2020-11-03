@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
             printf("argv: %s\n", buildTarget);
         }
     } else {
-        
+
     }
     // if (argc == 1) {
     //     runParser(make, NULL);
@@ -40,6 +40,6 @@ int main(int argc, char* argv[]) {
     //     exit(0);
     // }
 
-    free(make);
+    fclose(make);
     return 0;
 }

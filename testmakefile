@@ -4,12 +4,16 @@
 
 main.o: main.c parser.h graph.h
 	gcc -c -Wall -Wextra -pedantic -g main.c
+	echo gcc -c -Wall -Wextra -pedantic -g main.c
 
 parser.o: parser.c parser.h graph.h
 	gcc -c -Wall -Wextra -pedantic -g parser.c
+	echo gcc -c -Wall -Wextra -pedantic -g parser.c
 
 graph.o: graph.c graph.h execution.h
 	gcc -c -Wall -Wextra -pedantic -g graph.c
+	echo gcc -c -Wall -Wextra -pedantic -g graph.c
 
 execution.o: execution.c execution.h
 	gcc -c -Wall -Wextra -pedantic -g execution.c
+	echo gcc -c -Wall -Wextra -pedantic -g execution.c

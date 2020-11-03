@@ -6,7 +6,7 @@
 
 // makefile -> Makefile. If neither found, exit
 FILE* getMakeFile() {
-    FILE *make = fopen("testmakefile", "r");
+    FILE *make = fopen("makefile", "r");
 
     if (make == NULL) {
         make = fopen("Makefile", "r");
@@ -17,7 +17,7 @@ FILE* getMakeFile() {
         }
     }
 
-    printf("file opened\n");
+    //printf("file opened\n");
     return make;
 }
 

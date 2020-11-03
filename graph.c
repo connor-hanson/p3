@@ -20,6 +20,25 @@ int visitedBool = 1; // flips each time search is used
 	}
 }*/
 
+char* trim(char* str) {
+	int start = 0;
+	int end = (int)strlen(str);
+
+	while (start < end && (str[start] == ' ' || str[start] == '\t')) {
+		start++;
+	}
+
+	while(end > start &&(str[end] == ' ' || str[end] == '\n' || str[end] == '\t' || str[end]=='\0')) {
+		end--;
+	}
+
+	str[end+1] = '\0';
+	char* newStr = realloc(str, end-start+2);
+	//printf("in: %s, out: %s,\n", str, newStr);
+
+	return newStr;
+}
+
 /**
  * Add node {name} to graph. 
  * 
@@ -32,6 +51,7 @@ int visitedBool = 1; // flips each time search is used
  */
 GraphNode *addNode(char* name) {
 	// check if node exists
+	//name = trim(name);
 	GraphNode *nodeExists = getNode(graphRoot, name);
 	if(nodeExists != NULL) { // node already in graph, return reference
 		return nodeExists;
@@ -48,6 +68,7 @@ GraphNode *addNode(char* name) {
 		// init important node fields, inc node count
 		if (newNode->name != NULL) {
 			strcpy(newNode->name, name);
+			newNode->name = trim(newNode->name);
 			newNode->name[nameSize-1] = '\0';
 			//graph[numNodes] = newNode;
 			numNodes++;
@@ -214,7 +235,7 @@ int addNodeCmd(GraphNode *node, char *cmd) {
  * 		1: Good
  * 		0: Failure (cycle, file missing)
  */ 
-void executeNode(GraphNode *root, char *visitedNodes) {
+void executeNodeHelper1(GraphNode *root, char *visitedNodes) {
 
 	// nodes have been visited, and one of the names nodes is the same as the current root -> error
 	if (visitedNodes != NULL && strstr(visitedNodes, root->name) != NULL) {
@@ -288,6 +309,68 @@ void executeNode(GraphNode *root, char *visitedNodes) {
 		exit(0);
 	}
 	fclose(sourceFile);
+}
+
+// DFS
+void executeNodeHelper(GraphNode *root) {
+	// check for cycles
+	if (root->visited == visitedBool) {
+		printf("Error, cycle detected while executing graph\n");
+		exit(0);
+	}
+
+	root->visited = visitedBool;
+	int depsModded = 0;
+
+	// go thru deps, DFS
+	for (int i = 0; i < root->numDep; ++i) {
+		if (root->dependencies[i] != NULL && root->dependencies[i]->visited != visitedBool) {
+			executeNodeHelper(root->dependencies[i]);
+			// check if build times require re-compilation
+			if (childModded(root, root->dependencies[i])) {
+				depsModded = 1;
+			}
+		} else if (root->dependencies[i] == NULL) {
+			printf("Error, null dependency found while executing graph");
+			exit(0);
+		}
+	}
+
+	// if root has dependencies and they require re-compilation
+	if (root->numDep > 0 && depsModded) {
+		//if (depsModded) {
+		printf("execing %s\n", root->name);
+		executeCmd(root->commands, root->numCmd);
+		//}
+	}
+	
+	int nameLength = (int)strlen(root->name)+1;
+	FILE *sourceFile;
+	if (root->name[nameLength-2] == '\n') {
+		char tempName[nameLength-1];
+		memcpy(tempName, root->name, nameLength-2);
+		tempName[nameLength-2] = '\0';
+		printf("opening: %s\n", tempName);
+		sourceFile = fopen(tempName, "r");
+	}
+	else {
+		sourceFile = fopen(root->name, "r");
+	}
+	if (sourceFile == NULL) {
+		fprintf(stderr, "Error: %s not found\n", root->name);
+		exit(0);
+	}
+	fclose(sourceFile);
+}
+
+void executeNode(GraphNode *root, char *visitedNodes) {
+	visitedBool *= -1;
+	if (root == NULL) {
+		printf("Can't execute null dependency graph");
+		exit(0);
+	}
+
+	executeNodeHelper(root);
 }
 
 /**
@@ -414,7 +497,7 @@ int childModded(GraphNode *parent, GraphNode *child){
 
 		// if child file DNE, no dependency
 		if (childSucceed != 0) {
-			fprintf(stderr, "Error: %s not found for %s\n", child->name, parent->name);
+			fprintf(stderr, "Error: %s \tnot found for %s\n", child->name, parent->name);
 			exit(0);
 		}
 
