@@ -33,6 +33,8 @@ void runParser(FILE *fp) {
 
     int lineNum = 0;
 
+    GraphNode *masterNode = addNode("Master_Node");
+
     // line by line bby
     while (fgets(str, 4096, fp) != NULL) {
         //printf("%s%d%s\n", "lineNum: <", lineNum, ">");
@@ -75,7 +77,14 @@ void runParser(FILE *fp) {
                     }
                 }
 
-                parentNode = addNode(tok);
+                //parentNode = addNode(tok);
+                addNodeDep(masterNode, tok); // link every target to "master_node"
+                parentNode = getNode(masterNode, tok);
+
+                if (parentNode == NULL) {
+                    printf("ERROR GETTING NODE\n");
+                    exit(0);
+                }
 
                 // get the dependencies now. NULL in strtok to get next part of substr
                 while (tok != NULL) {

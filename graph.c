@@ -5,9 +5,9 @@
 #include "graph.h"
 #include "execution.h"
 
-GraphNode *graphRoot; // First node to be added to the graph
+GraphNode *graphRoot; // First node to be added to the graph -> master_node
 int numNodes = 0;
-int visitedBool = 1; // flips each time search is used
+int visitedBool = 1; // incs each time search is used
 
 // initialize graph, return 1 if successful, 0 otherwise
 /*int initGraph() {
@@ -20,6 +20,7 @@ int visitedBool = 1; // flips each time search is used
 	}
 }*/
 
+// like java's trim()
 char* trim(char* str) {
 	int start = 0;
 	int end = (int)strlen(str);
@@ -235,87 +236,11 @@ int addNodeCmd(GraphNode *node, char *cmd) {
  * 		1: Good
  * 		0: Failure (cycle, file missing)
  */ 
-void executeNodeHelper1(GraphNode *root, char *visitedNodes) {
-
-	// nodes have been visited, and one of the names nodes is the same as the current root -> error
-	if (visitedNodes != NULL && strstr(visitedNodes, root->name) != NULL) {
-		fprintf(stderr, "Error: dependency cycle in %s\n", visitedNodes);
-		exit(0);
-	}
-
-	root->visited = 1;
-
-	char *tempStack;
-	int depsModded = 0;
-
-	//dumpNode(root);
-
-	// loop through current node's dependency list
-	for (int i = 0; i < root->numDep; i++) {
-		int visited = root->dependencies[i]->visited; //dont visit if already done
-		if (!visited) {
-			if (visitedNodes != NULL) {
-				int stackLength = (int)strlen(visitedNodes)+1;
-				tempStack = malloc(stackLength * sizeof(char));
-			}
-			else {
-				tempStack = malloc(sizeof(char));
-			}
-			if (tempStack != NULL) {
-				if (visitedNodes != NULL) {
-					strcpy(tempStack, visitedNodes);
-				}
-				else {
-					strcpy(tempStack, "");
-				}
-				strncat(tempStack, root->name, strlen(root->name)); //add root to stack
-				executeNodeHelper1(root->dependencies[i], tempStack);
-				/*if (modded == 0) { //make sure there's no cycles
-					return 0;
-				}*/
-				free(tempStack);
-			}
-		}
- 
-		//int shouldCompile = childModded(root, root->dependencies[i]);
-		// check if build times require re-compilation
-		if (childModded(root, root->dependencies[i])) {
-			depsModded = 1;
-		}
-	}
-	
-	// if root has dependencies and they require re-compilation
-	if (root->numDep > 0 && depsModded) {
-		//if (depsModded) {
-		printf("execing %s\n", root->name);
-		executeCmd(root->commands, root->numCmd);
-		//}
-	}
-	
-	int nameLength = (int)strlen(root->name)+1;
-	FILE *sourceFile;
-	if (root->name[nameLength-2] == '\n') {
-		char tempName[nameLength-1];
-		memcpy(tempName, root->name, nameLength-2);
-		tempName[nameLength-2] = '\0';
-		printf("opening: %s\n", tempName);
-		sourceFile = fopen(tempName, "r");
-	}
-	else {
-		sourceFile = fopen(root->name, "r");
-	}
-	if (sourceFile == NULL) {
-		fprintf(stderr, "Error: %s not found\n", root->name);
-		exit(0);
-	}
-	fclose(sourceFile);
-}
-
 // DFS
 void executeNodeHelper(GraphNode *root) {
 	// check for cycles
 	if (root->visited == visitedBool) {
-		printf("Error, cycle detected while executing graph\n");
+		printf("Error, cycle detected while executing graph: %s\n", root->name);
 		exit(0);
 	}
 
@@ -356,13 +281,14 @@ void executeNodeHelper(GraphNode *root) {
 	if (sourceFile == NULL) {
 		fprintf(stderr, "Error: %s not found\n", root->name);
 		exit(0);
+	} else {
+		fclose(sourceFile);
 	}
-	fclose(sourceFile);
 }
 
 // switch flags and use main thang
 void executeNode(GraphNode *root) {
-	visitedBool *= -1;
+	visitedBool++;
 	if (root == NULL) {
 		printf("Can't execute null dependency graph");
 		exit(0);
@@ -408,7 +334,7 @@ GraphNode *getNodeHelper(GraphNode *startNode, char *name){
 
 // helper function. just switch up flags
 GraphNode *getNode(GraphNode *startNode, char *name) {
-	visitedBool *= -1;
+	visitedBool++;
 	return getNodeHelper(startNode, name);
 }
 
@@ -458,7 +384,7 @@ void freeNodeHelper(GraphNode *root) {
 
 // helper method. param checks and flip visited flag
 void freeNode(GraphNode *root) {
-	visitedBool *= -1;
+	visitedBool++;
 	if (root == NULL) {
 		printf("Can't free null parameter");
 	} else {
