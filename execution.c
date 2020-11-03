@@ -39,7 +39,7 @@ void executeLine(char *line) {
 				args[argNum] = NULL;
 				i = 0;
 				while (i < argNum+1) {
-					printf("arg: %s\n", args[i]);
+					//printf("arg: %s\n", args[i]);
 					i++;
 				}
 				execvp(args[0], args);
@@ -71,8 +71,7 @@ void executeLine(char *line) {
 }
 
 void executeCmd(char **commands, int numCmd) {
-	int i;
-	for (i = 0; i < numCmd; i++) {
+	for (int i = 0; i < numCmd; i++) {
 		executeLine(commands[i]);
 	}
 }

@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     // if no additional arg, first build spec found in file
     runParser(make);
     GraphNode *root = getGraphRoot();
-    executeNode(root, NULL);
+    executeNode(root);
     freeNode(root);
     if (argc > 1) {
         if (argc > 2) {

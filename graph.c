@@ -269,7 +269,7 @@ void executeNodeHelper1(GraphNode *root, char *visitedNodes) {
 					strcpy(tempStack, "");
 				}
 				strncat(tempStack, root->name, strlen(root->name)); //add root to stack
-				executeNode(root->dependencies[i], tempStack);
+				executeNodeHelper1(root->dependencies[i], tempStack);
 				/*if (modded == 0) { //make sure there's no cycles
 					return 0;
 				}*/
@@ -322,7 +322,7 @@ void executeNodeHelper(GraphNode *root) {
 	root->visited = visitedBool;
 	int depsModded = 0;
 
-	// go thru deps, DFS
+	// go thru deps, DFS recursive case
 	for (int i = 0; i < root->numDep; ++i) {
 		if (root->dependencies[i] != NULL && root->dependencies[i]->visited != visitedBool) {
 			executeNodeHelper(root->dependencies[i]);
@@ -338,10 +338,7 @@ void executeNodeHelper(GraphNode *root) {
 
 	// if root has dependencies and they require re-compilation
 	if (root->numDep > 0 && depsModded) {
-		//if (depsModded) {
-		printf("execing %s\n", root->name);
 		executeCmd(root->commands, root->numCmd);
-		//}
 	}
 	
 	int nameLength = (int)strlen(root->name)+1;
@@ -363,7 +360,8 @@ void executeNodeHelper(GraphNode *root) {
 	fclose(sourceFile);
 }
 
-void executeNode(GraphNode *root, char *visitedNodes) {
+// switch flags and use main thang
+void executeNode(GraphNode *root) {
 	visitedBool *= -1;
 	if (root == NULL) {
 		printf("Can't execute null dependency graph");
@@ -433,28 +431,29 @@ void freeNodeHelper(GraphNode *root) {
 	}
 
 	// free each of the malloc'd pointers inside the struct, set all vals to NULL/0
+	// double free somewhere in here
 	free(root->name);
 	root->name = NULL;
 
 	free(root->dependencies);
 	root->dependencies = NULL;
 
-	for (int i = 0; i < root->numCmd; ++i) {
-		free(root->commands[i]);
-		root->commands[i] = NULL;
-	}
-	free(root->commands);
-	root->commands = NULL;
+	// for (int i = 1; i < root->numCmd; ++i) {
+	// 	free(root->commands[i]);
+	// 	root->commands[i] = NULL;
+	// }
+	// free(root->commands);
+	// root->commands = NULL;
 
-	root->depSize = 0;
-	root->numDep = 0;
-	root->cmdSize = 0;
-	root->numCmd = 0;
-	root->visited = 0;
+	// root->depSize = 0;
+	// root->numDep = 0;
+	// root->cmdSize = 0;
+	// root->numCmd = 0;
+	// root->visited = 0;
 
-	free(root);
-	root = NULL;
-	numNodes--;
+	// free(root);
+	// root = NULL;
+	// numNodes--;
 }
 
 // helper method. param checks and flip visited flag
