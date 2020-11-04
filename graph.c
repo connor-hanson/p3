@@ -9,16 +9,13 @@ GraphNode *graphRoot; // First node to be added to the graph -> master_node
 int numNodes = 0;
 int visitedBool = 1; // incs each time search is used
 
-// initialize graph, return 1 if successful, 0 otherwise
-/*int initGraph() {
-	if ((graphRoot = malloc(sizeof(GraphNode))) != NULL) {
-		numNodes = 0;
-		graphSize = 10;
-		return 1;
-	} else {
-		return 0;
-	}
-}*/
+//  _____  _________   ____      ____   ___   _______     ___  ____   ______   
+// |_   _||  _   _  | |_  _|    |_  _|.'   `.|_   __ \   |_  ||_  _|.' ____ \  
+//   | |  |_/ | | \_|   \ \  /\  / / /  .-.  \ | |__) |    | |_/ /  | (___ \_| 
+//   | |      | |        \ \/  \/ /  | |   | | |  __ /     |  __'.   _.____`.  
+//  _| |_    _| |_        \  /\  /   \  `-'  /_| |  \ \_  _| |  \ \_| \____) | 
+// |_____|  |_____|        \/  \/     `.___.'|____| |___||____||____|\______.' 
+//                                                                
 
 // like java's trim()
 char* trim(char* str) {
