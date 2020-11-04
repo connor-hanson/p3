@@ -6,6 +6,12 @@
 #include <sys/wait.h>
 #include "execution.h"
 
+/**
+ * Parse line into args then execvp
+ *
+ * @param:
+ *	line - command string
+ */
 void executeLine(char *line) {
 	pid_t pid;
   	int status;
@@ -70,6 +76,13 @@ void executeLine(char *line) {
 	}
 }
 
+/**
+ * Executes each command in array
+ *
+ * @param:
+ *	commands - array of command strings
+ *	numCmd - number of command strings
+ */
 void executeCmd(char **commands, int numCmd) {
 	for (int i = 0; i < numCmd; i++) {
 		//printf("Running line:%s.\n", commands[i]);
