@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
             executeNode(tar);
         }
     } else {
-        executeNode(root);
+        executeNode(root->dependencies[0]);
     }
 
     freeNode(root);

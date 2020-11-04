@@ -72,6 +72,7 @@ void executeLine(char *line) {
 
 void executeCmd(char **commands, int numCmd) {
 	for (int i = 0; i < numCmd; i++) {
+		printf("Running line:%s.\n", commands[i]);
 		executeLine(commands[i]);
 	}
 }

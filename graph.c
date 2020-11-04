@@ -70,6 +70,7 @@ GraphNode *addNode(char* name) {
 		if (newNode->name != NULL) {
 			strcpy(newNode->name, name);
 			newNode->name = trim(newNode->name);
+			//printf("Node added: %s.\n", newNode->name);
 			newNode->name[nameSize-1] = '\0';
 			//graph[numNodes] = newNode;
 			numNodes++;
@@ -179,7 +180,9 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 		}
 	}
 
+	// command array exists
 	else {
+		//resize if needed
 		if (node->numCmd >= node->cmdSize) {
 			int currentSize = node->cmdSize;
 			size_t newSize = currentSize * 2 * sizeof(char*);
@@ -188,6 +191,7 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 				node->cmdSize = currentSize * 2;
 			}
 			else {
+				printf("Error reallocating memory for command array\n");
 				return 0;
 			}
 		}
@@ -196,6 +200,8 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 		//execStat = 1;
 		return 1;
 	}
+
+	printf("Added command:%s.\n", node->commands[node->numCmd-1]);
 	//printf("added: %s\n",node->commands[node->numCmd-1]);
 	//printf("\tadded command %s to node %s\n", node->commands[node->numCmd-1], node->name);
 	return execStat;
@@ -235,7 +241,8 @@ int addNodeCmd(GraphNode *node, char *cmd) {
  * @return
  * 		1: Good
  * 		0: Failure (cycle, file missing)
- */ 
+ */
+
 // DFS
 void executeNodeHelper(GraphNode *root) {
 	// check for cycles
@@ -251,8 +258,9 @@ void executeNodeHelper(GraphNode *root) {
 	for (int i = 0; i < root->numDep; ++i) {
 		if (root->dependencies[i] != NULL && root->dependencies[i]->visited != visitedBool) {
 			executeNodeHelper(root->dependencies[i]);
-			// check if build times require re-compilation
+			// check if build times require re-compilation, ie child has been modified
 			if (childModded(root, root->dependencies[i])) {
+				printf("recompile,%s.\n", root->name);
 				depsModded = 1;
 			}
 		} else if (root->dependencies[i] == NULL) {
@@ -264,24 +272,31 @@ void executeNodeHelper(GraphNode *root) {
 	// if root has dependencies and they require re-compilation
 	if (root->numDep > 0 && depsModded) {
 		executeCmd(root->commands, root->numCmd);
+	} 
+	// or if target without deps (eg 'clean') and has associated commands
+	else if (root->numDep == 0 && root->numCmd > 0) {
+		executeCmd(root->commands, root->numCmd);
 	}
 	
-	int nameLength = (int)strlen(root->name)+1;
-	FILE *sourceFile;
-	if (root->name[nameLength-2] == '\n') {
-		char tempName[nameLength-1];
-		memcpy(tempName, root->name, nameLength-2);
-		tempName[nameLength-2] = '\0';
-		printf("opening: %s\n", tempName);
-		sourceFile = fopen(tempName, "r");
-	}
-	else {
-		sourceFile = fopen(root->name, "r");
-	}
-	if (sourceFile == NULL) {
-		fprintf(stderr, "Error: %s not found\n", root->name);
-		exit(0);
-	} else {
+	if (root->numDep > 0 && strcmp(root->name, "Master_Node") != 0) {
+		int nameLength = (int)strlen(root->name)+1;
+		FILE *sourceFile;
+		if (root->name[nameLength-2] == '\n') {
+			char tempName[nameLength-1];
+			memcpy(tempName, root->name, nameLength-2);
+			tempName[nameLength-2] = '\0';
+			printf("opening: %s,\n", tempName);
+			sourceFile = fopen(tempName, "r");
+		}
+		else {
+			sourceFile = fopen(root->name, "r");
+			printf("opening %s,\n", root->name);
+		}
+
+		if (sourceFile == NULL) {
+			fprintf(stderr, "Error: %s not found\n", root->name);
+			exit(0);
+		}
 		fclose(sourceFile);
 	}
 }
@@ -395,7 +410,7 @@ void freeNode(GraphNode *root) {
 }
 
 /**
- * Check if {parent} is older than {child}. If so, return 1 - indicating that {parent} needs to be recompiled
+ * Check if {parent} is older than {child}. If not, return 1 - indicating that {parent} needs to be recompiled
  * 
  * @params: 
  * 		parent: should be older
@@ -422,12 +437,15 @@ int childModded(GraphNode *parent, GraphNode *child){
 
 		// if child file DNE, no dependency
 		if (childSucceed != 0) {
-			fprintf(stderr, "Error: %s \tnot found for %s\n", child->name, parent->name);
+			fprintf(stderr, "<childModded>Error: %s \tnot found for %s\n", child->name, parent->name);
 			exit(0);
 		}
 
-		// if parent older than child, recompile
-		if (parentFile.st_mtime > childFile.st_mtime) {
+		// printf("parent:%s, child:%s.\n", parent->name, child->name);
+		// printf("Diff:%ld.\n", parentFile.st_mtime-childFile.st_mtime);
+
+		// if parent older than child, recompile (was >)
+		if (parentFile.st_mtime < childFile.st_mtime) {
 			return 1;
 		}
 		else { // no recompile

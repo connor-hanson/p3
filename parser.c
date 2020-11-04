@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "parser.h"
 #include "graph.h"
 
@@ -78,7 +79,9 @@ void runParser(FILE *fp) {
                 }
 
                 //parentNode = addNode(tok);
+                //printf("%s%d%s\n", "lineNum: <", lineNum, ">");
                 addNodeDep(masterNode, tok); // link every target to "master_node"
+                //printf("Adding dep:...%s->%s...\n", masterNode->name, tok);
                 parentNode = getNode(masterNode, tok);
 
                 if (parentNode == NULL) {
@@ -89,8 +92,21 @@ void runParser(FILE *fp) {
                 // get the dependencies now. NULL in strtok to get next part of substr
                 while (tok != NULL) {
                     tok = strtok(NULL, " ");
+                    int valid = 0;
+
                     if (tok != NULL) {
-                        addNodeDep(parentNode, tok); // parent -> tok
+                        // check that 'dependencies' are not just whitespace
+                        for (size_t i = 0; i < strlen(tok); ++i) {
+                            if (isspace(tok[i]) == 0) { // is not space
+                                valid = 1;
+                                break;
+                            }
+                        }
+
+                        if (valid) {
+                            //printf("Adding dep:...%s->%s...\n", parentNode->name, tok);
+                            addNodeDep(parentNode, tok); // parent -> tok
+                        }
                     }
                 }  
             }

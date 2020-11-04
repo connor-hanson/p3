@@ -40,6 +40,7 @@ execution.o: execution.c execution.h
 
 clean:
 	rm -f graph.o parser.o main.o testParser.o testGraph.o tests.o execution.o maketest
+	echo rm -f graph.o parser.o main.o testParser.o testGraph.o tests.o execution.o maketest
 
 clean-all:
 	rm -f graph.o parser.o main.o testParser.o testGraph.o tests.o execution.o maketest 537make
