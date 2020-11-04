@@ -9,15 +9,13 @@ GraphNode *graphRoot; // First node to be added to the graph -> master_node
 int numNodes = 0;
 int visitedBool = 1; // incs each time search is used
 
-//  _____  _________   ____      ____   ___   _______     ___  ____   ______   
-// |_   _||  _   _  | |_  _|    |_  _|.'   `.|_   __ \   |_  ||_  _|.' ____ \  
-//   | |  |_/ | | \_|   \ \  /\  / / /  .-.  \ | |__) |    | |_/ /  | (___ \_| 
-//   | |      | |        \ \/  \/ /  | |   | | |  __ /     |  __'.   _.____`.  
-//  _| |_    _| |_        \  /\  /   \  `-'  /_| |  \ \_  _| |  \ \_| \____) | 
-// |_____|  |_____|        \/  \/     `.___.'|____| |___||____||____|\______.' 
-//                                                                
-
-// like java's trim()
+/**
+ * Trims string (java style)
+ *
+ * @param:
+ *	str - input string
+ * @return: trimmed string
+ */
 char* trim(char* str) {
 	int start = 0;
 	int end = (int)strlen(str);
@@ -32,7 +30,6 @@ char* trim(char* str) {
 
 	str[end+1] = '\0';
 	char* newStr = realloc(str, end-start+2);
-	//printf("in: %s, out: %s,\n", str, newStr);
 
 	return newStr;
 }
@@ -45,11 +42,11 @@ char* trim(char* str) {
  * 
  * @return:
  * 		Pointer to node if successful
- * 		NULL if error occurs (node exists, malloc error)
+ *		Pointer to existing node
+ * 		NULL if error occurs (malloc error)
  */
 GraphNode *addNode(char* name) {
 	// check if node exists
-	//name = trim(name);
 	GraphNode *nodeExists = getNode(graphRoot, name);
 	if(nodeExists != NULL) { // node already in graph, return reference
 		return nodeExists;
@@ -67,9 +64,7 @@ GraphNode *addNode(char* name) {
 		if (newNode->name != NULL) {
 			strcpy(newNode->name, name);
 			newNode->name = trim(newNode->name);
-			//printf("Node added: %s.\n", newNode->name);
 			newNode->name[nameSize-1] = '\0';
-			//graph[numNodes] = newNode;
 			numNodes++;
 			newNode->visited = 0;
 			newNode->numDep = 0;
@@ -87,7 +82,6 @@ GraphNode *addNode(char* name) {
 		fprintf(stderr, "Error: malloc node\n");
 		return NULL;
 	}
-	//printf("added node %s\n", newNode->name);
 	return newNode;
 }
 
@@ -122,7 +116,6 @@ int addNodeDep(GraphNode *node, char *dep) {
 	}
 	else {
 		if (node->numDep >= node->depSize) {
-			//printf("went in here\n");
 			int currentSize = node->depSize;
 			size_t newSize = currentSize * 2 * sizeof(GraphNode*);
 			node->dependencies = realloc(node->dependencies, newSize);
@@ -137,7 +130,6 @@ int addNodeDep(GraphNode *node, char *dep) {
 		node->numDep++;
 		execStat = 1;
 	}
-	//printf("\tadded node dependency %s to node %s\n", depNode->name, node->name);
 	return execStat;
 }
 
@@ -156,7 +148,7 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 	int execStat = 0;
 	int cmdLen = (int)strlen(cmd)+1;
 	char *entry = malloc(cmdLen*sizeof(char));
-
+	//create copy of cmd string
 	if (entry == NULL){
 		printf("Error allocating memory to command string");
 		return 0;
@@ -194,53 +186,20 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 		}
 		node->commands[node->numCmd] = entry;
 		node->numCmd++;
-		//execStat = 1;
 		return 1;
 	}
-
-	//printf("Added command:%s.\n", node->commands[node->numCmd-1]);
-	//printf("added: %s\n",node->commands[node->numCmd-1]);
-	//printf("\tadded command %s to node %s\n", node->commands[node->numCmd-1], node->name);
 	return execStat;
 }
 
 /**
- * @param:
- *		name - target name
- * REDO
- */
-/*int removeNode(char* name){
-	int execStat = 0;
-	int nodeIndex = 0;
-	while(strcmp(tar, graph[nodeIndex]->target) != 0){
-		nodeIndex++;
-	}
-	GraphNode *node = graph[nodeIndex];
-	for(int i = nodeIndex; i < graphSize-1; i++){
-		graph[i] = graph[i+1];
-	}
-	free(node);
-	execStat = 1;
-	return execStat;
-}*/
-
-//return 0 if failure (cycle, file missing)
-//		 1 otherwise
-
-/**
- * Traverse Graph (DFS?) & execute commands on each node
+ * Traverse Graph & execute commands on each node
  * 
  * @params
  * 		root: root node for traversal. Changes depending on whether user specifies build spec
  * 			  *graphRoot if none specified
  * 		visitedNodes: string containing space separated names of nodes which have been visited
- * 
- * @return
- * 		1: Good
- * 		0: Failure (cycle, file missing)
+ * @return: exits on failure
  */
-
-// DFS
 void executeNodeHelper(GraphNode *root) {
 	// check for cycles
 	if (root->visited == visitedBool) {
@@ -257,7 +216,6 @@ void executeNodeHelper(GraphNode *root) {
 			executeNodeHelper(root->dependencies[i]);
 			// check if build times require re-compilation, ie child has been modified
 			if (childModded(root, root->dependencies[i])) {
-				//printf("recompile,%s.\n", root->name);
 				depsModded = 1;
 			}
 		} else if (root->dependencies[i] == NULL) {
@@ -274,7 +232,7 @@ void executeNodeHelper(GraphNode *root) {
 	else if (root->numDep == 0 && root->numCmd > 0) {
 		executeCmd(root->commands, root->numCmd);
 	}
-	
+	//check compile was successful and/or file now exists
 	if (root->numDep > 0 && strcmp(root->name, "Master_Node") != 0) {
 		int nameLength = (int)strlen(root->name)+1;
 		FILE *sourceFile;
@@ -282,12 +240,10 @@ void executeNodeHelper(GraphNode *root) {
 			char tempName[nameLength-1];
 			memcpy(tempName, root->name, nameLength-2);
 			tempName[nameLength-2] = '\0';
-			//printf("opening: %s,\n", tempName);
 			sourceFile = fopen(tempName, "r");
 		}
 		else {
 			sourceFile = fopen(root->name, "r");
-			//printf("opening %s,\n", root->name);
 		}
 
 		if (sourceFile == NULL) {
@@ -298,7 +254,12 @@ void executeNodeHelper(GraphNode *root) {
 	}
 }
 
-// switch flags and use main thang
+/**
+ * Signals to execute commands on node traversal
+ *
+ * @param:
+ *	root - pointer to root node
+ */
 void executeNode(GraphNode *root) {
 	visitedBool++;
 	if (root == NULL) {
@@ -321,7 +282,6 @@ void executeNode(GraphNode *root) {
 GraphNode *getNodeHelper(GraphNode *startNode, char *name){
 
 	if (startNode == NULL) { // base case, bad param
-		//printf("No graph root parameter provided for search\n");
 		return NULL;
 	}
 
@@ -344,7 +304,9 @@ GraphNode *getNodeHelper(GraphNode *startNode, char *name){
 	return NULL; // not found
 }
 
-// helper function. just switch up flags
+/**
+ * Helper function for node traversing
+ */
 GraphNode *getNode(GraphNode *startNode, char *name) {
 	visitedBool++;
 	return getNodeHelper(startNode, name);
@@ -352,6 +314,9 @@ GraphNode *getNode(GraphNode *startNode, char *name) {
 
 /**
  * Recursively free graph starting from node {root}. DFS
+ *
+ * @param:
+ *	root - pointer to root node
  */
 void freeNodeHelper(GraphNode *root) {
 	if (root == NULL) { // base case, bad param
@@ -375,26 +340,14 @@ void freeNodeHelper(GraphNode *root) {
 
 	free(root->dependencies);
 	root->dependencies = NULL;
-
-	// for (int i = 1; i < root->numCmd; ++i) {
-	// 	free(root->commands[i]);
-	// 	root->commands[i] = NULL;
-	// }
-	// free(root->commands);
-	// root->commands = NULL;
-
-	// root->depSize = 0;
-	// root->numDep = 0;
-	// root->cmdSize = 0;
-	// root->numCmd = 0;
-	// root->visited = 0;
-
-	// free(root);
-	// root = NULL;
-	// numNodes--;
 }
 
-// helper method. param checks and flip visited flag
+/**
+ * Free node memory
+ *
+ * @param:
+ *	root - pointer to root node
+ */
 void freeNode(GraphNode *root) {
 	visitedBool++;
 	if (root == NULL) {
@@ -438,9 +391,6 @@ int childModded(GraphNode *parent, GraphNode *child){
 			exit(0);
 		}
 
-		// printf("parent:%s, child:%s.\n", parent->name, child->name);
-		// printf("Diff:%ld.\n", parentFile.st_mtime-childFile.st_mtime);
-
 		// if parent older than child, recompile (was >)
 		if (parentFile.st_mtime < childFile.st_mtime) {
 			return 1;
@@ -456,14 +406,16 @@ int childModded(GraphNode *parent, GraphNode *child){
 	}
 }
 
-/*char **getDependencies(char* dep){
-	return NULL;
-}*/
-
+/**
+ * @return: Number of nodes
+ */
 int getNumNodes() {
 	return numNodes;
 }
 
+/**
+ * @return: Get pointer to root node
+ */
 GraphNode* getGraphRoot() {
 	return graphRoot;
 }
