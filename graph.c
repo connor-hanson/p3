@@ -201,7 +201,7 @@ int addNodeCmd(GraphNode *node, char *cmd) {
 		return 1;
 	}
 
-	printf("Added command:%s.\n", node->commands[node->numCmd-1]);
+	//printf("Added command:%s.\n", node->commands[node->numCmd-1]);
 	//printf("added: %s\n",node->commands[node->numCmd-1]);
 	//printf("\tadded command %s to node %s\n", node->commands[node->numCmd-1], node->name);
 	return execStat;
@@ -260,7 +260,7 @@ void executeNodeHelper(GraphNode *root) {
 			executeNodeHelper(root->dependencies[i]);
 			// check if build times require re-compilation, ie child has been modified
 			if (childModded(root, root->dependencies[i])) {
-				printf("recompile,%s.\n", root->name);
+				//printf("recompile,%s.\n", root->name);
 				depsModded = 1;
 			}
 		} else if (root->dependencies[i] == NULL) {
@@ -285,12 +285,12 @@ void executeNodeHelper(GraphNode *root) {
 			char tempName[nameLength-1];
 			memcpy(tempName, root->name, nameLength-2);
 			tempName[nameLength-2] = '\0';
-			printf("opening: %s,\n", tempName);
+			//printf("opening: %s,\n", tempName);
 			sourceFile = fopen(tempName, "r");
 		}
 		else {
 			sourceFile = fopen(root->name, "r");
-			printf("opening %s,\n", root->name);
+			//printf("opening %s,\n", root->name);
 		}
 
 		if (sourceFile == NULL) {
@@ -305,7 +305,7 @@ void executeNodeHelper(GraphNode *root) {
 void executeNode(GraphNode *root) {
 	visitedBool++;
 	if (root == NULL) {
-		printf("Can't execute null dependency graph");
+		printf("Error: No rule to make target. Stop\n");
 		exit(0);
 	}
 
@@ -324,7 +324,7 @@ void executeNode(GraphNode *root) {
 GraphNode *getNodeHelper(GraphNode *startNode, char *name){
 
 	if (startNode == NULL) { // base case, bad param
-		printf("No graph root parameter provided for search\n");
+		//printf("No graph root parameter provided for search\n");
 		return NULL;
 	}
 

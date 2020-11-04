@@ -22,7 +22,6 @@ int main(int argc, char* argv[]) {
             exit(0);
         } else {
             char* buildTarget = argv[1];
-            printf("argv: %s\n", buildTarget);
             GraphNode *tar = getNode(root, buildTarget);
             if (tar == NULL) {
                 printf("fuckme\n");
