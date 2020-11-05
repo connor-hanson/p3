@@ -340,6 +340,9 @@ void freeNodeHelper(GraphNode *root) {
 
 	free(root->dependencies);
 	root->dependencies = NULL;
+
+	free(root->commands);
+	root->commands=NULL;
 }
 
 /**

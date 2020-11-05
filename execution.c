@@ -46,10 +46,15 @@ void executeLine(char *line) {
 				i = 0;
 				while (i < argNum+1) {
 					//printf("arg: %s\n", args[i]);
+					if (args[i] != NULL) {
+						printf("%s ", args[i]);
+					}
 					i++;
 				}
+				printf("\n");
+				
 				execvp(args[0], args);
-				fprintf(stderr, "Error: execvp failed\n");
+				fprintf(stderr, "Error: execvp failed. %s is not a valid command.\n", args[0]);
 				exit(0);
 			}
 			else {
